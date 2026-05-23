@@ -8,6 +8,18 @@
 
 ---
 
+## 飞书套件
+
+这是 **hermes-feishu-adapter-optimization**，飞书套件的适配优化包。
+
+| 包 | 定位 |
+|----|------|
+| [hermes-feishu-zh](https://github.com/OLDBAI213/hermes-feishu-zh) | 中文化（基础，必装） |
+| [hermes-feishu-display-plus](https://github.com/OLDBAI213/hermes-feishu-display-plus) | 显示增强 |
+| **hermes-feishu-adapter-optimization** | 适配优化（本包） |
+
+---
+
 ## 这是什么？
 
 飞书发图片给 Hermes，Hermes 只看到文本路径；发文件，下载失败静默丢失；忙碌时发消息，附件被丢掉。
