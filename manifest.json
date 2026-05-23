@@ -1,0 +1,60 @@
+{
+  "manifest_version": 1,
+  "name": "hermes-feishu-adapter-optimization",
+  "version": "0.1.0-local",
+  "description": "Hermes Feishu adapter optimization pack for media, files, mixed messages, queues, threads, resource download, and cross-context continuity.",
+  "license": "MIT",
+  "homepage": "https://github.com/OLDBAI213/hermes-feishu-adapter-optimization",
+  "status": "local_draft",
+  "target": {
+    "product": "Hermes Agent",
+    "version_range": ">=0.14.0",
+    "platforms": [
+      "windows"
+    ]
+  },
+  "scope": [
+    "image and file input",
+    "mixed Feishu messages",
+    "busy queue media safety",
+    "retry attachment safety",
+    "thread and history integration",
+    "CLI to Feishu continuity"
+  ],
+  "not_scope": [
+    "Chinese localization rules",
+    "display polish",
+    "browser automation fixes"
+  ],
+  "entrypoints": {
+    "install": "install.ps1",
+    "rollback": "install.ps1 -Rollback latest",
+    "verify": "verify.ps1"
+  },
+  "patches": [
+    "patches/source-files.txt",
+    "patches/source.replacements.json"
+  ],
+  "modifies_planned": {
+    "source": [
+      "hermes-agent/gateway/platforms/base.py",
+      "hermes-agent/gateway/platforms/feishu.py",
+      "hermes-agent/gateway/run.py",
+      "hermes-agent/gateway/stream_consumer.py",
+      "hermes-agent/tools/send_message_tool.py"
+    ],
+    "plugin_or_tooling": [
+      "lark-cli resource download helpers",
+      "Feishu media/file verification helpers"
+    ]
+  },
+  "verify": {
+    "command": "powershell -ExecutionPolicy Bypass -File .\\verify.ps1",
+    "checks": [
+      "Windows MEDIA path parser exists",
+      "send_message Windows MEDIA attachment test exists",
+      "busy queue media preservation test exists",
+      "Feishu adapter research note exists"
+    ]
+  }
+}
