@@ -28,7 +28,7 @@
 ## 一键安装
 
 ```powershell
-iex (irm https://raw.githubusercontent.com/OLDBAI213/hermes-feishu-adapter-optimization/main/install.ps1)
+iex (irm https://raw.githubusercontent.com/OLDBAI213/hermes-feishu-adapter-optimization/main/bootstrap.ps1)
 ```
 
 ---
@@ -37,7 +37,7 @@ iex (irm https://raw.githubusercontent.com/OLDBAI213/hermes-feishu-adapter-optim
 
 | 操作 | 命令 |
 |------|------|
-| **安装** | `iex (irm https://raw.githubusercontent.com/OLDBAI213/hermes-feishu-adapter-optimization/main/install.ps1)` |
+| **安装** | `iex (irm https://raw.githubusercontent.com/OLDBAI213/hermes-feishu-adapter-optimization/main/bootstrap.ps1)` |
 | **验证** | `powershell -ExecutionPolicy Bypass -File .\verify.ps1` |
 | **回滚** | `powershell -ExecutionPolicy Bypass -File .\install.ps1 -Rollback latest` |
 
