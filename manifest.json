@@ -2,7 +2,7 @@
   "manifest_version": 1,
   "name": "hermes-feishu-adapter-optimization",
   "version": "0.1.0",
-  "description": "Hermes Feishu adapter optimization pack for media, files, mixed messages, queues, threads, resource download, and cross-context continuity.",
+  "description": "飞书适配优化包。图片、文件、混合消息、队列、线程、资源下载、跨上下文连续性。",
   "license": "MIT",
   "homepage": "https://github.com/OLDBAI213/hermes-feishu-adapter-optimization",
   "status": "local_draft",
