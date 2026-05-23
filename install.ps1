@@ -76,26 +76,40 @@ function Apply-Replacements {
     )
     if (-not (Test-Path -LiteralPath $JsonPath)) { return }
     $items = Get-Content -LiteralPath $JsonPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    $skipped = @()
+    $applied = 0
     foreach ($item in $items) {
         $target = Join-Path $RootPath $item.file
         if (-not (Test-Path -LiteralPath $target)) {
-            throw "Patch target not found: $target"
+            Write-Host "  ⚠️ 文件不存在，跳过: $($item.file)" -ForegroundColor Yellow
+            $skipped += "$($item.file): 文件不存在"
+            continue
         }
-        $backupName = ($item.file -replace '[\\/]', '__') + ".bak"
+        $backupName = ($item.file -replace '[\\\\/]', '__') + ".bak"
         $backupPath = Join-Path $BackupDir $backupName
         if (-not (Test-Path -LiteralPath $backupPath)) {
             Copy-Item -LiteralPath $target -Destination $backupPath -Force
         }
         $text = Get-Content -LiteralPath $target -Raw -Encoding UTF8
         if ($text.Contains($item.replace)) {
+            $applied++
             continue
         }
         if (-not $text.Contains($item.find)) {
-            throw "Patch marker not found in $target"
+            $skipped += "$($item.file): 标记未找到（可能 Hermes 已更新）"
+            continue
         }
         $text = $text.Replace($item.find, $item.replace)
         Set-Content -LiteralPath $target -Value $text -Encoding UTF8 -NoNewline
+        $applied++
     }
+    if ($skipped.Count -gt 0) {
+        Write-Host "  ⚠️ 跳过 $($skipped.Count) 条规则:" -ForegroundColor Yellow
+        foreach ($s in $skipped) {
+            Write-Host "    - $s" -ForegroundColor Yellow
+        }
+    }
+    Write-Host "  ✅ 应用 $applied 条规则"
 }
 
 $HermesHome = Resolve-HermesHome -Requested $HermesHome
