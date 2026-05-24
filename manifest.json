@@ -1,8 +1,8 @@
 {
   "manifest_version": 1,
   "name": "hermes-feishu-adapter-optimization",
-  "version": "0.1.0",
-  "description": "飞书适配优化包。图片、文件、混合消息、队列、线程、资源下载、跨上下文连续性。",
+  "version": "0.1.2",
+  "description": "飞书适配优化包。图片、文件、音视频、混合消息、队列、资源下载和失败提示。",
   "license": "MIT",
   "homepage": "https://github.com/OLDBAI213/hermes-feishu-adapter-optimization",
   "status": "local_draft",
@@ -18,18 +18,24 @@
     "mixed Feishu messages",
     "busy queue media safety",
     "retry attachment safety",
-    "thread and history integration",
-    "CLI to Feishu continuity"
+    "audio and video resource routing",
+    "download failure diagnostics"
   ],
   "not_scope": [
     "Chinese localization rules",
     "display polish",
-    "browser automation fixes"
+    "browser automation fixes",
+    "cross-platform continuity",
+    "TUI to Feishu handoff"
   ],
   "entrypoints": {
     "install": "install.ps1",
     "rollback": "install.ps1 -Rollback latest",
-    "verify": "verify.ps1"
+    "verify": "verify.ps1",
+    "full_audit": "verify.ps1 -Full",
+    "preflight": "docs/preflight.md",
+    "manual_acceptance": "examples/manual-feishu-cases.md",
+    "behavior_acceptance": "uv run python tests/feishu_acceptance_harness.py"
   },
   "patches": [
     "patches/source-files.txt",
@@ -37,10 +43,6 @@
   ],
   "modifies_planned": {
     "source": [
-      "hermes-agent/gateway/platforms/base.py",
-      "hermes-agent/gateway/platforms/feishu.py",
-      "hermes-agent/gateway/run.py",
-      "hermes-agent/gateway/stream_consumer.py",
       "hermes-agent/tools/send_message_tool.py"
     ],
     "plugin_or_tooling": [
@@ -50,11 +52,21 @@
   },
   "verify": {
     "command": "powershell -ExecutionPolicy Bypass -File .\\verify.ps1",
+    "full_command": "powershell -ExecutionPolicy Bypass -File .\\verify.ps1 -Full",
     "checks": [
+      "Acceptance matrix exists",
+      "Preflight capability map, risk matrix, acceptance examples, and self-check exist",
+      "Manual Feishu cases exist",
+      "Independent behavior fixture harness passes",
       "Windows MEDIA path parser exists",
       "send_message Windows MEDIA attachment test exists",
       "busy queue media preservation test exists",
-      "Feishu adapter research note exists"
+      "Feishu adapter research note exists",
+      "Native image local path leak regression exists",
+      "Download failure notice is appended once",
+      "Feishu Markdown post native element conversion exists",
+      "Tool progress realtime count exists",
+      "Gateway status and Feishu connection are visible"
     ]
   }
 }

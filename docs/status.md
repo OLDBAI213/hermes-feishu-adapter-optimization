@@ -1,14 +1,15 @@
 # 当前状态
 
-日期：2026-05-23
+日期：2026-05-24
 
 ## 状态
 
-本项目是本地草稿项目，已经具备项目结构、本机验证入口和源码备份安装器。研究资料仍保留在 `E:\AI\github\src-research\hermes-feishu-adapter-optimization\README.md`。
+本项目是本地草稿项目，已经具备项目结构、本机验证入口和源码备份安装器。
 
 ## 已有本机能力
 
 - Windows `MEDIA:E:\...` 路径不再泄漏到飞书正文。
+- native 多模态图片消息不再把 `E:\AI\hermes\image_cache\...` 本地路径塞进模型文本，避免模型误走 `read_file`、`browser_*`、`vision_analyze`。
 - `MEDIA:` 解析复用统一规则。
 - `send_message` 能把 Windows 图片路径作为附件处理。
 - 忙碌队列保留 `media_urls`，不把带附件消息降级成纯文本。
@@ -20,14 +21,25 @@
 powershell -ExecutionPolicy Bypass -File .\verify.ps1
 ```
 
+## 项目执行规矩
+
+从 2026-05-24 起，飞书适配优化按项目处理，不按截图零散修：
+
+1. 先定位链路：输入、路由、会话、输出、生命周期。
+2. 再查同链路的相邻能力，不能只修截图里露出的一个字符串或一个按钮。
+3. 改动后必须跑相关测试，并确认网关是否需要重启。
+4. 每次补丁都要记录"现象 / 根因 / 处理 / 验证 / 是否已重启"。
+5. 如果同类问题反复出现，先补验收清单，再继续写代码。
+
 ## 未完成
 
 - 还没有抽完整源码补丁；当前只有最小替换和源码文件清单。
-- 还没有覆盖所有飞书文件类型、线程、历史和跨上下文切换。
+- 还没有覆盖所有飞书文件类型。
+- 线程、历史、跨上下文切换已从本项目范围里拆出，后续进入 `hermes-continuity` 验证。
 
-## 2026-05-23 本机验证
+## 验证记录摘要
 
-- `install.ps1 -VerifyOnly`：9 通过，0 失败。
-- `install.ps1`：已创建源码和配置备份，执行源码替换检查，并完成验证。
-- 备份目录示例：`E:\AI\hermes\backups\hermes-feishu-adapter-optimization-20260523-221503`。
-- 最新验证备份示例：`E:\AI\hermes\backups\hermes-feishu-adapter-optimization-20260523-221923`。
+- 适配优化静态审查：36/36 通过
+- 适配优化完整审查：37/37 通过
+- 独立行为 fixture：6/6 通过
+- Hermes 飞书相关 pytest：276 通过

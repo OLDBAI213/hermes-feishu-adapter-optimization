@@ -1,10 +1,5 @@
 [
   {
-    "file": "hermes-agent/gateway/platforms/base.py",
-    "find": "import uuid\nfrom abc import ABC, abstractmethod\nfrom urllib.parse import urlsplit",
-    "replace": "import uuid\nfrom abc import ABC, abstractmethod\nfrom urllib.parse import urlsplit"
-  },
-  {
     "file": "hermes-agent/tools/send_message_tool.py",
     "find": "media_files, cleaned_message = BasePlatformAdapter.extract_media(message)\n    mirror_text = cleaned_message.strip() or message.strip()",
     "replace": "media_files, cleaned_message = BasePlatformAdapter.extract_media(message)\n    mirror_text = cleaned_message.strip() or _describe_media_for_mirror(media_files)"

@@ -1,11 +1,16 @@
 param(
-    [string]$HermesHome = $(if ($env:HERMES_HOME) { $env:HERMES_HOME } else { "E:\AI\hermes" }),
+    [string]$HermesHome = $(if ($env:HERMES_HOME) { $env:HERMES_HOME } else { "" }),
     [switch]$VerifyOnly,
     [string]$Rollback = ""
 )
 
 $ErrorActionPreference = "Stop"
 $PackageRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+if (-not $HermesHome) {
+    Write-Host "Usage: .\install.ps1 -HermesHome C:\path\to\hermes" -ForegroundColor Yellow
+    exit 1
+}
 
 function Write-Step {
     param([string]$Message)
