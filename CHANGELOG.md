@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.2] - 2026-05-24
+
+### 修复
+- 删除 no-op 空规则（find==replace）
+- 移除 verify.ps1 中的硬编码绝对路径
+- 修复 verify.ps1 中 $ProjectRoot 变量定义顺序错误
+- research.md 检查改为可选（WARN）
+- manifest.json 裁剪为实际修改的文件
+- install.ps1/verify.ps1 的 HermesHome 改为必填参数
+- 更新过时文档
+- 修正 LICENSE 版权方
+
+### 优化
+- 完善 README，增加痛点描述和版本更新
+- 添加 GitHub Topics 提高可发现性
+
 ## [0.1.1] - 2026-05-24
 
 ### Added
