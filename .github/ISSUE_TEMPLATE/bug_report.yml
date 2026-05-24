@@ -1,0 +1,62 @@
+name: Bug Report
+description: 报告一个 bug
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你报告 bug！请填写以下信息帮助我们定位问题。
+
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: 你使用的 hermes-feishu-display-plus 版本
+      placeholder: v0.1.0
+    validations:
+      required: true
+
+  - type: input
+    id: hermes-version
+    attributes:
+      label: Hermes 版本
+      description: 你使用的 Hermes Agent 版本
+      placeholder: v0.14.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 问题描述
+      description: 请清晰描述你遇到的问题
+      placeholder: 安装后工具调用记录没有显示编号...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 如何复现这个问题？
+      placeholder: |
+        1. 安装 hermes-feishu-display-plus
+        2. 在飞书中发送消息
+        3. 观察工具调用记录
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期望行为
+      description: 你期望的结果是什么？
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志/截图
+      description: 如有报错日志或截图，请粘贴在这里

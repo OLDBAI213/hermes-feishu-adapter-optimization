@@ -1,0 +1,33 @@
+name: Feature Request
+description: 提出新功能建议
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢你的建议！请描述你希望的功能。
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 功能描述
+      description: 你希望添加什么功能？
+      placeholder: 希望工具调用记录能显示每个工具的耗时...
+    validations:
+      required: true
+
+  - type: textarea
+    id: usecase
+    attributes:
+      label: 使用场景
+      description: 这个功能解决什么问题？
+      placeholder: 当工具调用很多时，不知道哪个工具最耗时...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 建议方案
+      description: 你有什么实现思路？

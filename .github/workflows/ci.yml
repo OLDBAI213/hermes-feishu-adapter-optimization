@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PowerShell
+        uses: Amadevus/pwsh-script@v2
+
+      - name: Run verification
+        run: |
+          pwsh -ExecutionPolicy Bypass -File ./verify.ps1 -HermesHome "${{ github.workspace }}"
+        continue-on-error: true
+
+      - name: Check manifest
+        run: |
+          $manifest = Get-Content manifest.json | ConvertFrom-Json
+          Write-Host "Package: $($manifest.name)"
+          Write-Host "Version: $($manifest.version)"
+          if ($manifest.version -ne "${{ github.ref_name }}".TrimStart('v')) {
+            Write-Host "Warning: Version mismatch"
+          }
