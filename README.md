@@ -2,29 +2,19 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Hermes Agent](https://img.shields.io/badge/Hermes_Agent-%3E%3D0.14.0-9B59B6.svg)](https://github.com/NousResearch/hermes-agent)
-[![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](https://github.com/OLDBAI213/hermes-feishu-adapter-optimization/releases)
+[![Version](https://img.shields.io/badge/version-0.1.2-blue.svg)](https://github.com/OLDBAI213/hermes-feishu-adapter-optimization/releases)
 
 > **让飞书消息完整进入 Hermes，Hermes 结果正确回到飞书。** 图片、文件、音视频、图文混排、忙碌队列、失败提示。
 
 ---
 
-## 飞书套件
+## 痛点
 
-这是 **hermes-feishu-adapter-optimization**，飞书套件的适配优化包。
+飞书发图片给 Hermes，Hermes 只看到文本路径；发文件，下载失败静默丢失；忙碌时发消息，附件被丢掉。你以为 Hermes 看到了你的图片，其实它只看到一行文字。
 
-| 包 | 定位 |
-|----|------|
-| [hermes-feishu-zh](https://github.com/OLDBAI213/hermes-feishu-zh) | 中文化（基础，必装） |
-| [hermes-feishu-display-plus](https://github.com/OLDBAI213/hermes-feishu-display-plus) | 显示增强 |
-| **hermes-feishu-adapter-optimization** | 适配优化（本包） |
+## 解决方案
 
----
-
-## 这是什么？
-
-飞书发图片给 Hermes，Hermes 只看到文本路径；发文件，下载失败静默丢失；忙碌时发消息，附件被丢掉。
-
-**hermes-feishu-adapter-optimization** 解决这些问题：
+**hermes-feishu-adapter-optimization** 是飞书套件的适配优化包，解决这些问题：
 
 | 场景 | 安装前 | 安装后 |
 |------|--------|--------|
@@ -49,6 +39,8 @@
 ```powershell
 iex (irm https://raw.githubusercontent.com/OLDBAI213/hermes-feishu-adapter-optimization/main/bootstrap.ps1)
 ```
+
+**注意：** 需要先安装 [hermes-feishu-zh](https://github.com/OLDBAI213/hermes-feishu-zh)（中文化包）。
 
 ---
 
@@ -78,10 +70,22 @@ iex (irm https://raw.githubusercontent.com/OLDBAI213/hermes-feishu-adapter-optim
 
 ## 验证结果
 
-- 适配优化静态审查：36/36 通过
-- 适配优化完整审查：37/37 通过
+- 适配优化静态审查：35/35 通过
+- 适配优化完整审查：36/36 通过
 - 独立行为 fixture：6/6 通过
 - Hermes 飞书相关 pytest：276 通过
+
+---
+
+## 飞书套件
+
+这是 **hermes-feishu-adapter-optimization**，飞书套件的适配优化包。完整飞书体验需要安装套件的三个包：
+
+| 包 | 定位 | 说明 |
+|----|------|------|
+| [hermes-feishu-zh](https://github.com/OLDBAI213/hermes-feishu-zh) | 中文化 | 基础包，必装 |
+| [hermes-feishu-display-plus](https://github.com/OLDBAI213/hermes-feishu-display-plus) | 显示增强 | 工具调用记录、状态显示、结构化正文 |
+| **hermes-feishu-adapter-optimization** | 适配优化 | 本包 |
 
 ---
 
