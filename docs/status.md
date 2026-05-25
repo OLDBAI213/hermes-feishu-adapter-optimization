@@ -6,14 +6,24 @@
 
 本项目是本地草稿项目，已经具备项目结构、本机验证入口和源码备份安装器。
 
-## 已有本机能力
+## 已有能力
 
 - Windows `MEDIA:E:\...` 路径不再泄漏到飞书正文。
-- native 多模态图片消息不再把 `E:\AI\hermes\image_cache\...` 本地路径塞进模型文本，避免模型误走 `read_file`、`browser_*`、`vision_analyze`。
+- 图片消息不再把 `E:\AI\hermes\image_cache\...` 本地路径塞进模型文本，避免模型误走 `read_file`、`browser_*`。
+- 支持“主模型不支持图片、辅助视觉模型支持图片”的常见配置；已知文本模型不会被强行塞入 native 图片。
+- `provider + base_url` 的辅助视觉配置会保留 provider 凭据解析，不会误降级成 `custom`。
 - `MEDIA:` 解析复用统一规则。
 - `send_message` 能把 Windows 图片路径作为附件处理。
 - 忙碌队列保留 `media_urls`，不把带附件消息降级成纯文本。
 - 已有最小源码替换补丁：`patches/source.replacements.json`。
+
+## 本机验收配置
+
+这只是老白本机当前配置，不是本项目安装要求：
+
+- 主对话：`xiaomi / mimo-v2.5-pro`
+- 视觉辅助：`xiaomi / mimo-v2.5`
+- 结论：主模型走文本/推理，图片先由视觉辅助解析后回填。
 
 ## 当前验证入口
 
@@ -30,6 +40,7 @@ powershell -ExecutionPolicy Bypass -File .\verify.ps1
 3. 改动后必须跑相关测试，并确认网关是否需要重启。
 4. 每次补丁都要记录"现象 / 根因 / 处理 / 验证 / 是否已重启"。
 5. 如果同类问题反复出现，先补验收清单，再继续写代码。
+6. 验收必须同时看源码、测试、配置、日志和真实网关进程树；不能只数匹配到的进程，也不能忽略父子进程关系。
 
 ## 未完成
 
@@ -39,7 +50,31 @@ powershell -ExecutionPolicy Bypass -File .\verify.ps1
 
 ## 验证记录摘要
 
-- 适配优化静态审查：36/36 通过
-- 适配优化完整审查：37/37 通过
+- 适配优化静态审查：42/42 通过
+- 适配优化完整审查：43/43 通过
 - 独立行为 fixture：6/6 通过
-- Hermes 飞书相关 pytest：276 通过
+- 图片/视觉路由 pytest：53/53 通过
+- Hermes 飞书相关 pytest：285 通过
+
+## 2026-05-24 反复失败的根因记录
+
+现象：飞书发送图片后，Hermes 回复图片加载/API 报错，先出现 `unknown variant image_url, expected text`，后又出现 `Invalid API Key`。
+
+根因：
+
+1. 当前本机主模型不支持图片输入，视觉辅助模型支持图片输入。
+2. 原先把 `agent.image_input_mode: native` 当作绝对覆盖，导致已知文本模型也可能被硬塞图片。
+3. `vision_analyze` 的辅助配置是 `provider + base_url`，但辅助解析链路二次解析时把它误判成 `custom + base_url`，没有走 provider 凭据解析，所以报 401。
+
+处理：
+
+- 本机主模型恢复为 `mimo-v2.5-pro`，视觉辅助使用 `xiaomi/mimo-v2.5`。
+- `image_routing.py` 和 `run_agent.py` 只在能力未知时允许 `native` 覆盖；已知文本模型必须走文本视觉回填。
+- `auxiliary_client.py` 修正 `provider + base_url` 的解析，保留 provider，不再误降级成 custom。
+
+新增验收：
+
+- 当前本机主模型的图片路由必须是 `text`。
+- `vision_analyze` 必须解析到配置里的辅助视觉 provider/model 并真实返回成功。
+- `provider + base_url` 必须保留 provider 凭据解析，不能变成 custom。
+- 当前机器必须只有一个网关进程树。

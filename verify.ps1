@@ -74,8 +74,10 @@ $GatewayLog = Join-Path $HermesHome "logs\gateway.log"
 $BasePy = Join-Path $AgentRoot "gateway\platforms\base.py"
 $FeishuPy = Join-Path $AgentRoot "gateway\platforms\feishu.py"
 $RunPy = Join-Path $AgentRoot "gateway\run.py"
+$RunAgentPy = Join-Path $AgentRoot "run_agent.py"
 $StreamConsumerPy = Join-Path $AgentRoot "gateway\stream_consumer.py"
 $ImageRoutingPy = Join-Path $AgentRoot "agent\image_routing.py"
+$AuxiliaryClientPy = Join-Path $AgentRoot "agent\auxiliary_client.py"
 $GatewayWindowsPy = Join-Path $AgentRoot "hermes_cli\gateway_windows.py"
 $SendMessageTests = if (Test-Path -LiteralPath (Join-Path $AgentRoot "tests\tools\test_send_message_tool.py")) { Join-Path $AgentRoot "tests\tools\test_send_message_tool.py" } else { Join-Path $AgentRoot "tests\gateway\test_send_message_tool.py" }
 $BaseTests = Join-Path $AgentRoot "tests\gateway\test_platform_base.py"
@@ -83,6 +85,8 @@ $BusyTests = Join-Path $AgentRoot "tests\gateway\test_busy_session_ack.py"
 $FeishuTests = Join-Path $AgentRoot "tests\gateway\test_feishu.py"
 $RunProgressTests = Join-Path $AgentRoot "tests\gateway\test_run_progress_topics.py"
 $ImageRoutingTests = Join-Path $AgentRoot "tests\agent\test_image_routing.py"
+$VisionResolvedArgsTests = Join-Path $AgentRoot "tests\agent\test_vision_resolved_args.py"
+$VisionAwareTests = Join-Path $AgentRoot "tests\run_agent\test_vision_aware_preprocessing.py"
 $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $ResearchNote = Join-Path $ProjectRoot "docs\research.md"
 $AcceptanceMatrix = Join-Path $ProjectRoot "docs\acceptance-matrix.md"
@@ -116,13 +120,17 @@ Write-Check "independent behavior harness exists" ((Test-Path -LiteralPath $Acce
 $baseSource = Read-Text $BasePy
 $feishuSource = Read-Text $FeishuPy
 $runSource = Read-Text $RunPy
+$runAgentSource = Read-Text $RunAgentPy
 $streamSource = Read-Text $StreamConsumerPy
 $imageRoutingSource = Read-Text $ImageRoutingPy
+$auxiliaryClientSource = Read-Text $AuxiliaryClientPy
 $gatewayWindowsSource = Read-Text $GatewayWindowsPy
 $configSource = Read-Text $ConfigYaml
 $feishuTestsText = Read-Text $FeishuTests
 $runProgressTestsText = Read-Text $RunProgressTests
 $imageRoutingTestsText = Read-Text $ImageRoutingTests
+$visionResolvedArgsTestsText = Read-Text $VisionResolvedArgsTests
+$visionAwareTestsText = Read-Text $VisionAwareTests
 $baseTestsText = Read-Text $BaseTests
 $sendMessageTestsText = Read-Text $SendMessageTests
 $busyTestsText = Read-Text $BusyTests
@@ -140,6 +148,10 @@ Write-Check "Feishu downloads image resources" ($feishuSource.Contains("async de
 Write-Check "Feishu downloads file/audio/video resources" ($feishuSource.Contains("async def _download_feishu_message_resource"))
 Write-Check "native image text does not expose local cache paths" ($imageRoutingSource.Contains("must not expose local cache paths") -and $imageRoutingSource.Contains("image_url"))
 Write-Check "native image regression tests exist" ($imageRoutingTestsText.Contains("[Image attached at:") -and $imageRoutingTestsText.Contains("vision_analyze"))
+Write-Check "image routing refuses known text-only models even when native is requested" ($imageRoutingSource.Contains("known text-only") -and $imageRoutingSource.Contains("falling back to text image routing"))
+Write-Check "run_agent honors image_input_mode without forcing known text-only models" ($runAgentSource.Contains("forced_image_mode") -and $runAgentSource.Contains('forced_image_mode == "text"') -and $runAgentSource.Contains('return forced_image_mode == "native"'))
+Write-Check "forced native image mode regression tests exist" ($visionAwareTestsText.Contains("test_forced_native_image_mode_overrides_unknown_capability_metadata") -and $visionAwareTestsText.Contains("test_known_text_only_model_is_not_forced_to_native") -and $visionAwareTestsText.Contains("test_vision_capable_model_keeps_image_parts_with_native_mode"))
+Write-Check "vision provider base_url keeps provider credential resolution" ($auxiliaryClientSource.Contains('not in {"auto", "custom"}') -and $visionResolvedArgsTestsText.Contains("test_task_provider_model_keeps_provider_with_base_url"))
 
 Write-Host ""
 Write-Host "3. Failure handling"
@@ -161,6 +173,8 @@ Write-Check "tool progress count regression test exists" ($runProgressTestsText.
 Write-Host ""
 Write-Host "5. Lifecycle and config"
 Write-Check "Windows gateway restart lifecycle notice exists" ($gatewayWindowsSource.Contains("网关正在重启") -and $gatewayWindowsSource.Contains("网关已上线"))
+Write-Check "model config keeps a provider and default model" ($configSource.Contains("model:") -and $configSource.Contains("provider:") -and $configSource.Contains("default:"))
+Write-Check "auxiliary vision config exists or native image routing is available" ($configSource.Contains("vision:") -or $imageRoutingSource.Contains("build_native_content_parts"))
 Write-Check "Feishu home channel configured" ($configSource.Contains("home_channel:") -and $configSource.Contains("platform: feishu"))
 Write-Check "Feishu status card runtime footer disabled" ($configSource.Contains("runtime_footer:") -and $configSource.Contains("enabled: false"))
 Write-Check "Feishu outbound audit hook enabled locally" ($feishuSource.Contains("_audit_outbound_message") -and $configSource.Contains("outbound_audit: true"))
@@ -179,11 +193,15 @@ Test-CommandSuccess -Name "fixed Feishu behavior fixtures pass" -FilePath "uv" -
 if (-not $SkipGatewayStatus) {
     Write-Host ""
     Write-Host "8. Current gateway status"
+    $GatewayProcesses = @(Get-CimInstance Win32_Process | Where-Object { $_.CommandLine -match "hermes_cli.main gateway run" -and $_.Name -match "pythonw" })
+    $GatewayIds = @($GatewayProcesses | ForEach-Object { $_.ProcessId })
+    $GatewayRootCount = @($GatewayProcesses | Where-Object { -not ($GatewayIds -contains $_.ParentProcessId) }).Count
+    Write-Check "current machine has one gateway process tree" ($GatewayRootCount -le 1) "roots=$GatewayRootCount processes=$($GatewayProcesses.Count)"
     $HermesExe = Join-Path $AgentRoot "venv\Scripts\hermes.exe"
     if (Test-Path -LiteralPath $HermesExe) {
         $statusOk = Test-CommandSuccess -Name "hermes gateway status succeeds" -FilePath $HermesExe -Arguments @("gateway", "status") -WorkingDirectory $AgentRoot
         if (Test-Path -LiteralPath $GatewayLog) {
-            $tail = Get-Content -LiteralPath $GatewayLog -Tail 80 -Encoding UTF8
+            $tail = Get-Content -LiteralPath $GatewayLog -Tail 500 -Encoding UTF8
             $connected = ($tail -join "`n").Contains("✓ feishu connected") -or ($tail -join "`n").Contains("[Feishu] Connected")
             Write-Check "recent gateway log shows Feishu connected" $connected
         } else {
@@ -205,6 +223,7 @@ if ($Full) {
         "tests\gateway\test_feishu_zh_progress.py",
         "tests\gateway\test_run_progress_topics.py::test_feishu_keeps_one_progress_bubble_across_interim_messages",
         "tests\gateway\test_run_progress_topics.py::test_feishu_zh_progress_appends_failed_tool_line",
+        "tests\agent\test_vision_resolved_args.py",
         "tests\agent\test_image_routing.py",
         "tests\gateway\test_native_image_buffer_isolation.py",
         "tests\run_agent\test_vision_aware_preprocessing.py"

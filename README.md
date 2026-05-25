@@ -70,10 +70,11 @@ iex (irm https://raw.githubusercontent.com/OLDBAI213/hermes-feishu-adapter-optim
 
 ## 验证结果
 
-- 适配优化静态审查：35/35 通过
-- 适配优化完整审查：36/36 通过
+- 适配优化静态审查：42/42 通过
+- 适配优化完整审查：43/43 通过
 - 独立行为 fixture：6/6 通过
-- Hermes 飞书相关 pytest：276 通过
+- 图片/视觉路由 pytest：53/53 通过
+- Hermes 飞书相关 pytest：285 通过
 
 ---
 
