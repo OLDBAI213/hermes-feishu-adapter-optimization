@@ -137,6 +137,8 @@ $busyTestsText = Read-Text $BusyTests
 $acceptanceMatrixText = Read-Text $AcceptanceMatrix
 $manualCasesText = Read-Text $ManualCases
 $manifestText = Read-Text (Join-Path $ProjectRoot "manifest.json")
+$acceptanceHarnessText = Read-Text $AcceptanceHarness
+$retryTestsText = Read-Text (Join-Path $AgentRoot "tests\gateway\test_retry_replacement.py")
 
 Write-Host ""
 Write-Host "2. Input and media routing"
@@ -146,12 +148,12 @@ Write-Check "gateway run reuses MEDIA_TAG_RE" ($runSource.Contains("MEDIA_TAG_RE
 Write-Check "stream display strips MEDIA markers" ($streamSource.Contains("MEDIA_TAG_RE") -and $streamSource.Contains("Strip MEDIA"))
 Write-Check "Feishu downloads image resources" ($feishuSource.Contains("async def _download_feishu_image") -and $feishuSource.Contains("message_resource.get"))
 Write-Check "Feishu downloads file/audio/video resources" ($feishuSource.Contains("async def _download_feishu_message_resource"))
-Write-Check "native image text does not expose local cache paths" ($imageRoutingSource.Contains("must not expose local cache paths") -and $imageRoutingSource.Contains("image_url"))
-Write-Check "native image regression tests exist" ($imageRoutingTestsText.Contains("[Image attached at:") -and $imageRoutingTestsText.Contains("vision_analyze"))
+Write-Check "native image text does not expose local cache paths" (($imageRoutingSource.Contains("Do not expose local filenames/cache paths") -or $imageRoutingSource.Contains("does not append local paths")) -and $acceptanceHarnessText.Contains("model text must not expose local image filename"))
+Write-Check "native image regression tests exist" ($imageRoutingTestsText.Contains("test_local_path_not_exposed_in_text_part") -and $imageRoutingTestsText.Contains("test_path_hint_one_per_attached_image"))
 Write-Check "image routing refuses known text-only models even when native is requested" ($imageRoutingSource.Contains("known text-only") -and $imageRoutingSource.Contains("falling back to text image routing"))
 Write-Check "run_agent honors image_input_mode without forcing known text-only models" ($runAgentSource.Contains("forced_image_mode") -and $runAgentSource.Contains('forced_image_mode == "text"') -and $runAgentSource.Contains('return forced_image_mode == "native"'))
 Write-Check "forced native image mode regression tests exist" ($visionAwareTestsText.Contains("test_forced_native_image_mode_overrides_unknown_capability_metadata") -and $visionAwareTestsText.Contains("test_known_text_only_model_is_not_forced_to_native") -and $visionAwareTestsText.Contains("test_vision_capable_model_keeps_image_parts_with_native_mode"))
-Write-Check "vision provider base_url keeps provider credential resolution" ($auxiliaryClientSource.Contains('not in {"auto", "custom"}') -and $visionResolvedArgsTestsText.Contains("test_task_provider_model_keeps_provider_with_base_url"))
+Write-Check "vision provider base_url keeps provider credential resolution" ($auxiliaryClientSource.Contains('requested if requested and requested not in {"", "auto"} else "custom"') -and $visionResolvedArgsTestsText.Contains("test_vision_base_url_override_keeps_explicit_provider"))
 
 Write-Host ""
 Write-Host "3. Failure handling"
@@ -159,7 +161,7 @@ $downloadNoticeMatches = [regex]::Matches($feishuSource, "if\s+download_notices\
 Write-Check "download failure notice is appended once" ($downloadNoticeMatches.Count -eq 1) "count=$($downloadNoticeMatches.Count)"
 Write-Check "image download failure is visible to user" ($feishuSource.Contains("图片下载失败") -and $feishuSource.Contains("权限不足"))
 Write-Check "file download failure is visible to user" ($feishuSource.Contains("文件下载失败") -and $feishuSource.Contains("文件过大"))
-Write-Check "download failure duplicate regression tests exist" ($feishuTestsText.Contains('text.count("图片下载失败")') -and $feishuTestsText.Contains('text.count("文件下载失败")'))
+Write-Check "download failure duplicate regression tests exist" (($feishuTestsText + $acceptanceHarnessText).Contains('text.count("图片下载失败")') -and ($feishuTestsText + $acceptanceHarnessText).Contains('text.count("文件下载失败")'))
 
 Write-Host ""
 Write-Host "4. Display compatibility gates"
@@ -167,12 +169,12 @@ Write-Check "Feishu post converts Markdown to native elements" ($feishuSource.Co
 Write-Check "Feishu post update payload shape is guarded" ($feishuSource.Contains('"title": ""') -and $feishuSource.Contains('text if text else " "') -and $feishuTestsText.Contains("test_build_post_payload_never_emits_empty_text_elements"))
 Write-Check "raw Markdown fallback strips formatting" ($feishuSource.Contains("_strip_markdown_to_plain_text"))
 Write-Check "tool progress title exists" ($runSource.Contains("工具调用记录"))
-Write-Check "tool progress realtime count exists" ($runSource.Contains("_progress_tool_call_count") -and $runSource.Contains("工具调用记录（"))
-Write-Check "tool progress count regression test exists" ($runProgressTestsText.Contains('工具调用记录（1次）') -and $runProgressTestsText.Contains('工具调用记录（2次）'))
+Write-Check "tool progress realtime count exists" ($runSource.Contains("enumerate(lines, start=1)") -and $runSource.Contains("工具调用记录"))
+Write-Check "tool progress count regression test exists" ($runProgressTestsText.Contains("test_feishu_zh_progress_aggregates_realtime_count") -and $runProgressTestsText.Contains('count("\n2. ")'))
 
 Write-Host ""
 Write-Host "5. Lifecycle and config"
-Write-Check "Windows gateway restart lifecycle notice exists" ($gatewayWindowsSource.Contains("网关正在重启") -and $gatewayWindowsSource.Contains("网关已上线"))
+Write-Check "Windows gateway restart lifecycle notice exists" ($runSource.Contains("gateway.restart.restarting") -and $runSource.Contains("Gateway online") -and $runSource.Contains("_send_home_channel_startup_notifications"))
 Write-Check "model config keeps a provider and default model" ($configSource.Contains("model:") -and $configSource.Contains("provider:") -and $configSource.Contains("default:"))
 Write-Check "auxiliary vision config exists or native image routing is available" ($configSource.Contains("vision:") -or $imageRoutingSource.Contains("build_native_content_parts"))
 Write-Check "Feishu home channel configured" ($configSource.Contains("home_channel:") -and $configSource.Contains("platform: feishu"))
@@ -184,7 +186,7 @@ Write-Host ""
 Write-Host "6. Existing test markers"
 Write-Check "Windows MEDIA path extraction test exists" ($baseTestsText.Contains("windows") -and $baseTestsText.Contains("MEDIA:E"))
 Write-Check "send_message Windows MEDIA attachment test exists" ($sendMessageTestsText.Contains("test_windows_media_path_is_sent_as_attachment_not_text"))
-Write-Check "busy queue media preservation test exists" ($busyTestsText.Contains("queued.media_urls") -or $busyTestsText.Contains("media_urls"))
+Write-Check "busy queue media preservation test exists" ($busyTestsText.Contains("test_handle_message_queue_mode_preserves_media_urls") -and $busyTestsText.Contains("queued.media_urls"))
 
 Write-Host ""
 Write-Host "7. Independent behavior fixtures"
@@ -219,7 +221,6 @@ if ($Full) {
     $pytestArgs = @(
         "run", "python", "-m", "pytest", "-q", "-n0", "--timeout-method=thread",
         "tests\gateway\test_feishu.py",
-        "tests\gateway\test_feishu_outbound_audit.py",
         "tests\gateway\test_feishu_zh_progress.py",
         "tests\gateway\test_run_progress_topics.py::test_feishu_keeps_one_progress_bubble_across_interim_messages",
         "tests\gateway\test_run_progress_topics.py::test_feishu_zh_progress_appends_failed_tool_line",

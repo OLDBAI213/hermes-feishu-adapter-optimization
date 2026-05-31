@@ -76,6 +76,14 @@ def check_post_markdown_output() -> None:
     from gateway.config import PlatformConfig
     from gateway.platforms.feishu import FeishuAdapter
 
+    def style_enabled(element: dict, key: str) -> bool:
+        style = element.get("style")
+        if isinstance(style, dict):
+            return bool(style.get(key))
+        if isinstance(style, list):
+            return key in style
+        return False
+
     adapter = FeishuAdapter(PlatformConfig(extra={"outbound_format": "post"}))
     msg_type, payload = adapter._build_outbound_payload(
         "## 标题\n\n这是 **重点** 和 `code`\n\n- 第一项\n- 第二项"
@@ -89,9 +97,9 @@ def check_post_markdown_output() -> None:
     _assert("##" not in all_text, "post output should not expose raw heading markdown")
     _assert("**" not in all_text, "post output should not expose raw bold markdown")
     _assert("`code`" not in all_text, "post output should not expose raw inline code markdown")
-    _assert(any(e.get("text") == "标题" and e.get("style", {}).get("bold") for e in flat), "heading should become bold native text")
-    _assert(any(e.get("text") == "重点" and e.get("style", {}).get("bold") for e in flat), "bold markdown should become native bold text")
-    _assert(any(e.get("text") == "code" and e.get("style", {}).get("code") for e in flat), "inline code should become native code text")
+    _assert(any(e.get("text") == "标题" and style_enabled(e, "bold") for e in flat), "heading should become bold native text")
+    _assert(any(e.get("text") == "重点" and style_enabled(e, "bold") for e in flat), "bold markdown should become native bold text")
+    _assert(any(e.get("text") == "code" and style_enabled(e, "code") for e in flat), "inline code should become native code text")
 
 
 def check_feishu_media_extraction() -> None:

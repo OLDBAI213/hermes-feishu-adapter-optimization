@@ -2,6 +2,19 @@
 
 日期：2026-05-24
 
+## 2026-05-29 复审
+
+当前 Hermes 源码是 `E:\AI\hermes\hermes-agent`，版本 `Hermes Agent v0.15.1 (2026.5.29)`。
+
+复审结果：
+
+- `pwsh -ExecutionPolicy Bypass -File E:\AI\github\hermes-feishu-adapter-optimization\verify.ps1 -HermesHome E:\AI\hermes -SkipGatewayStatus`：39 通过，0 失败。
+- 独立行为 fixture：6/6 通过。
+- 已适配：飞书资源下载、图片/文件下载失败提示、飞书 Markdown post 原生元素转换、共享 `MEDIA_TAG_RE`、Windows drive `MEDIA:`、stream 显示剥离、native image 文本不泄漏本地路径、forced native/image routing、下载重复回归、outbound audit、send_message/busy queue MEDIA 回归。
+- 边界：跨平台连续性不属于本项目，已拆到 `hermes-continuity`。
+
+结论：本项目在老白本机 Hermes v0.15.1 上等级 B。还缺真实飞书 PC/手机手工样例验收，不能标 A。
+
 ## 状态
 
 本项目是本地草稿项目，已经具备项目结构、本机验证入口和源码备份安装器。

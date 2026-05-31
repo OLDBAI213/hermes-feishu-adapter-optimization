@@ -5,7 +5,7 @@
   "description": "飞书适配优化包。图片、文件、音视频、混合消息、队列、资源下载和失败提示。",
   "license": "MIT",
   "homepage": "https://github.com/OLDBAI213/hermes-feishu-adapter-optimization",
-  "status": "local_draft",
+  "status": "compatible_on_local_hermes_0.15.1",
   "target": {
     "product": "Hermes Agent",
     "version_range": ">=0.14.0",
